@@ -17,8 +17,8 @@ services:
 
   api:
     build:
-      context: ./Backend
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: Config/Dockerfile
     container_name: fastapi
     ports:
       - "8000:8000"
@@ -27,7 +27,7 @@ services:
     networks:
       - appnet
     environment:
-      - PYTHONUNBUFFERED=1  # Optionnel mais utile pour voir les logs en temps réel
+      - PYTHONUNBUFFERED=1
 
 volumes:
   sqlserver_data:

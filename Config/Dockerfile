@@ -24,19 +24,13 @@ RUN curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /et
     ACCEPT_EULA=Y apt-get install -y msodbcsql18 && \
     rm -rf /var/lib/apt/lists/*
 
-# Pour Postgres
-RUN apt-get update && \
-    apt-get install -y libpq-dev && \
-    rm -rf /var/lib/apt/lists/*
-
-# App setup
 WORKDIR /app
-COPY app/ /app/
-RUN pip install fastapi uvicorn sqlmodel pyodbc bcrypt
+# requirements.txt est dans Config/
+COPY Config/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Script d'attente DB
-COPY wait-for-sql.sh /wait-for-sql.sh
-RUN chmod +x /wait-for-sql.sh
+# Monter d’un niveau pour accéder à src/
+COPY src/ ./src
+WORKDIR /app/src
 
-# Point d’entrée
-CMD ["/wait-for-sql.sh"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
