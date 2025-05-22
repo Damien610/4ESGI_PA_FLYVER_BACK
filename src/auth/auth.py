@@ -6,7 +6,6 @@ import hashlib  # ou passlib plus tard
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
 from jose.exceptions import ExpiredSignatureError
-from typing import Optional
 from fastapi import Header, status
 
 from database.connection import db
