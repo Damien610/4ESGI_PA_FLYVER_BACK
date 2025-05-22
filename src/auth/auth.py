@@ -7,9 +7,9 @@ from jose import jwt, JWTError
 from datetime import datetime, timedelta
 from jose.exceptions import ExpiredSignatureError
 from fastapi import Header, status
-
+import secrets
 from database.connection import db
-from database.models import User
+from database.models import User, RefreshToken
 from fastapi.security import OAuth2PasswordBearer
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
@@ -71,6 +71,7 @@ def login(user: UserLogin, session: Session = Depends(db.get_session)):
     if db_user.password_hash != hashed_pwd:
         raise HTTPException(status_code=401, detail="Email ou mot de passe incorrect.")
 
+    # Générer le token d'accès
     token_data = {
         "sub": db_user.email,
         "name": db_user.name,
@@ -78,10 +79,26 @@ def login(user: UserLogin, session: Session = Depends(db.get_session)):
         "is_admin": db_user.is_admin,
         "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     }
+    access_token = jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
 
-    token = jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
+    # Générer le refresh token
+    refresh_token = secrets.token_hex(32)
+    refresh_token_expiration = datetime.utcnow() + timedelta(days=30)
 
-    return {"access_token": token, "token_type": "bearer"}
+    # Sauvegarder le refresh token dans la base de données
+    new_refresh_token = RefreshToken(
+        token=refresh_token,
+        user_id=db_user.id_users,
+        expires_at=refresh_token_expiration
+    )
+    session.add(new_refresh_token)
+    session.commit()
+
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer"
+    }
 
 
 @router.get("/me")
@@ -105,3 +122,33 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token invalide"
         )
+
+@router.post("/refresh")
+def refresh_token(refresh_token: str, session: Session = Depends(db.get_session)):
+    # Vérifier si le refresh token est valide
+    db_refresh_token = session.exec(
+        select(RefreshToken).where(RefreshToken.token == refresh_token)
+    ).first()
+
+    if not db_refresh_token or db_refresh_token.expires_at < datetime.utcnow():
+        raise HTTPException(status_code=401, detail="Refresh token invalide ou expiré.")
+
+    # Récupérer l'utilisateur associé
+    db_user = session.exec(
+        select(User).where(User.id_users == db_refresh_token.user_id)
+    ).first()
+
+    if not db_user:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé.")
+
+    # Générer un nouveau token d'accès
+    token_data = {
+        "sub": db_user.email,
+        "name": db_user.name,
+        "first_name": db_user.first_name,
+        "is_admin": db_user.is_admin,
+        "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    }
+    access_token = jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
+
+    return {"access_token": access_token, "token_type": "bearer"}

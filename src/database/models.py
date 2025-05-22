@@ -14,3 +14,10 @@ class User(SQLModel, table=True):
     is_admin: Optional[bool] = Field(default=False)
     password_hash: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+# === RefreshToken ===
+class RefreshToken(SQLModel, table=True):
+    id: int = Field(default=None, primary_key=True)
+    token: str
+    user_id: int
+    expires_at: datetime
