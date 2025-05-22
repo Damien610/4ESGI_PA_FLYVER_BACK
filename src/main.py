@@ -2,11 +2,17 @@ from fastapi import Depends, FastAPI, HTTPException
 from database.connection import db
 from sqlalchemy import text
 from sqlmodel import Session
-
+from fastapi.openapi.utils import get_openapi
+from fastapi import FastAPI
 from auth.auth import router as auth_router
 
 app = FastAPI()
+
+# Enregistrer les routes
 app.include_router(auth_router)
+
+# Appliquer le schéma OpenAPI personnalisé
+app.openapi = lambda: custom_openapi(app)
 
 @app.get("/")
 def read_root():
@@ -42,3 +48,25 @@ def list_table_data(table_name: str, session: Session = Depends(db.get_session))
         "table": table_name,
         "rows": data
     }
+
+def custom_openapi(app: FastAPI):
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title="FLYVER API",
+        version="1.0.0",
+        description="Documentation de l'API avec support Bearer Token",
+        routes=app.routes,
+    )
+    openapi_schema["components"]["securitySchemes"] = {
+        "BearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT",
+        }
+    }
+    for path in openapi_schema["paths"].values():
+        for method in path.values():
+            method["security"] = [{"BearerAuth": []}]
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema

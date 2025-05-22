@@ -5,12 +5,15 @@ from pydantic import BaseModel
 import hashlib  # ou passlib plus tard
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
+from jose.exceptions import ExpiredSignatureError
 from typing import Optional
 from fastapi import Header, status
 
 from database.connection import db
 from database.models import User
+from fastapi.security import OAuth2PasswordBearer
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 router = APIRouter()
 
 class UserCreate(BaseModel):
@@ -83,12 +86,8 @@ def login(user: UserLogin, session: Session = Depends(db.get_session)):
 
 
 @router.get("/me")
-def get_current_user(authorization: Optional[str] = Header(None)):
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token manquant ou invalide")
-
-    token = authorization.split(" ")[1]
-
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    print("Token reçu :", token)
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return {
@@ -97,5 +96,13 @@ def get_current_user(authorization: Optional[str] = Header(None)):
             "name": payload.get("name"),
             "role": payload.get("is_admin"),
         }
+    except ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Le token a expiré"
+        )
     except JWTError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token invalide")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token invalide"
+        )
