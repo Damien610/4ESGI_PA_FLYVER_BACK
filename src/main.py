@@ -5,11 +5,12 @@ from sqlmodel import Session
 from fastapi.openapi.utils import get_openapi
 from fastapi import FastAPI
 from auth.auth import router as auth_router
-
+from airport.airport import router as airport_router
 app = FastAPI()
 
 # Enregistrer les routes
 app.include_router(auth_router)
+app.include_router(airport_router)
 
 # Appliquer le schéma OpenAPI personnalisé
 app.openapi = lambda: custom_openapi(app)
@@ -18,7 +19,7 @@ app.openapi = lambda: custom_openapi(app)
 def read_root():
     return {"message": "API OK"}
 
-@app.get("/db/table")
+@app.get("/db/table", tags=["Utilitaires"])
 def read_root(session: Session = Depends(db.get_session)):
     query = text("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'")
     result = session.exec(query).fetchall()
@@ -31,7 +32,7 @@ def read_root(session: Session = Depends(db.get_session)):
     }
 
 
-@app.get("/tables/{table_name}")
+@app.get("/tables/{table_name}", tags=["Utilitaires"])
 def list_table_data(table_name: str, session: Session = Depends(db.get_session)):
     try:
         result = session.exec(text(f"SELECT * FROM {table_name}")).fetchall()
