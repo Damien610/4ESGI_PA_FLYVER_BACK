@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session,select
-from sqlalchemy import text
+
 from pydantic import BaseModel
-import hashlib  # ou passlib plus tard
+import hashlib
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
 from jose.exceptions import ExpiredSignatureError
-from fastapi import Header, status
+from fastapi import status
 import secrets
 from database.connection import db
 from database.models import User, RefreshToken

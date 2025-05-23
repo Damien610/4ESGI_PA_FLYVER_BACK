@@ -4,13 +4,17 @@ from sqlalchemy import text
 from sqlmodel import Session
 from fastapi.openapi.utils import get_openapi
 from fastapi import FastAPI
+
+# Importer les routeurs
 from auth.auth import router as auth_router
 from airport.airport import router as airport_router
+from ModelPlane.model_plane import router as model_plane_router
 app = FastAPI()
 
 # Enregistrer les routes
 app.include_router(auth_router)
 app.include_router(airport_router)
+app.include_router(model_plane_router)
 
 # Appliquer le schéma OpenAPI personnalisé
 app.openapi = lambda: custom_openapi(app)
