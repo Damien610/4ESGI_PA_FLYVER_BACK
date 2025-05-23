@@ -15,17 +15,7 @@ from fastapi.security import OAuth2PasswordBearer
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 router = APIRouter()
 
-class UserCreate(BaseModel):
-    email: str
-    password: str
-    is_admin: bool = False
-    first_name: str
-    name: str
-
-
-class UserLogin(BaseModel):
-    email: str
-    password: str
+from HTTP_Models.MOD_auth import UserCreate, UserLogin
 
 
 def hash_password(password: str) -> str:

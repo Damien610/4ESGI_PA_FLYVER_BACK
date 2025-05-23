@@ -4,24 +4,13 @@ from jose.exceptions import ExpiredSignatureError
 from pydantic import BaseModel
 from database.connection import db
 from database.models import Airport, RefreshToken
+from HTTP_Models.MOD_airport import AirportCreateModel, AirportUpdateModel
 from typing import Optional
 from sqlmodel import Session,select
 from fastapi import Query
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 router = APIRouter()
-
-class AirportCreateModel(BaseModel):
-    name: str
-    iata: str
-    city: str
-    country: str
-
-class AirportUpdateModel(BaseModel):
-    name: Optional[str] = None
-    iata: Optional[str] = None
-    city: Optional[str] = None
-    country: Optional[str] = None
 
 @router.put("/airport", tags=["Aéroports"])
 def put_plane(airport: AirportCreateModel, token: str = Depends(oauth2_scheme), session: Session = Depends(db.get_session)):
