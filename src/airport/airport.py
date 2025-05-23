@@ -2,8 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from jose.exceptions import ExpiredSignatureError
 from pydantic import BaseModel
-from jose import jwt, JWTError
-from fastapi import Header, status
 from database.connection import db
 from database.models import Airport, RefreshToken
 from typing import Optional

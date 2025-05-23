@@ -1,7 +1,7 @@
 from sqlmodel import SQLModel, Field
 from typing import Optional
 from datetime import datetime
-from sqlalchemy import UniqueConstraint
+from sqlalchemy import UniqueConstraint, String, Column
 
 # === USERS ===
 class User(SQLModel, table=True):
@@ -34,4 +34,17 @@ class Airport(SQLModel, table=True):
     iata: str
     city: str
     country: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+# === ModelPLane ===
+class ModelPlane(SQLModel, table=True):
+    __tablename__ = "model_planes"
+    __table_args__ = (
+        UniqueConstraint("name", "manufacturer", name="uix_name_manufacturer"),
+    )
+
+    id_model_plane: Optional[int] = Field(default=None, primary_key=True)
+    name: str = Field(sa_column=Column(String(255), nullable=False))
+    manufacturer: str = Field(sa_column=Column(String(255), nullable=False))
+    capacity: int
     created_at: datetime = Field(default_factory=datetime.utcnow)
