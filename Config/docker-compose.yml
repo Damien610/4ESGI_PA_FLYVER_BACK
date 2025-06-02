@@ -28,6 +28,8 @@ services:
       - appnet
     environment:
       - PYTHONUNBUFFERED=1
+    volumes:
+      - ../src:/app/src
 
 volumes:
   sqlserver_data:
