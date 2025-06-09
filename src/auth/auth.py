@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session,select
-from sqlalchemy import text
+
 from pydantic import BaseModel
-import hashlib  # ou passlib plus tard
+import hashlib
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
 from jose.exceptions import ExpiredSignatureError
+
 from fastapi import Header, status
 import secrets
 from database.connection import db
@@ -15,23 +16,13 @@ from fastapi.security import OAuth2PasswordBearer
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 router = APIRouter()
 
-class UserCreate(BaseModel):
-    email: str
-    password: str
-    is_admin: bool = False
-    first_name: str
-    name: str
-
-
-class UserLogin(BaseModel):
-    email: str
-    password: str
+from HTTP_Models.MOD_auth import UserCreate, UserLogin
 
 
 def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 
-@router.post("/register")
+@router.post("/register", tags=["Authentification"])
 def register(user: UserCreate, session: Session = Depends(db.get_session)):
     existing = session.exec(
         select(User).where(User.email == user.email)
@@ -58,7 +49,7 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 
-@router.post("/login")
+@router.post("/login", tags=["Authentification"])
 def login(user: UserLogin, session: Session = Depends(db.get_session)):
     db_user = session.exec(
         select(User).where(User.email == user.email)
@@ -101,7 +92,7 @@ def login(user: UserLogin, session: Session = Depends(db.get_session)):
     }
 
 
-@router.get("/me")
+@router.get("/me", tags=["Authentification"])
 def get_current_user(token: str = Depends(oauth2_scheme)):
     print("Token reçu :", token)
     try:
@@ -123,7 +114,8 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
             detail="Token invalide"
         )
 
-@router.post("/refresh")
+
+@router.post("/refresh", tags=["Authentification"])
 def refresh_token(refresh_token: str, session: Session = Depends(db.get_session)):
     # Vérifier si le refresh token est valide
     db_refresh_token = session.exec(
