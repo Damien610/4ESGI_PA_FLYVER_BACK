@@ -48,3 +48,4 @@ class ModelPlane(SQLModel, table=True):
     manufacturer: str = Field(sa_column=Column(String(255), nullable=False))
     capacity: int
     created_at: datetime = Field(default_factory=datetime.utcnow)
+

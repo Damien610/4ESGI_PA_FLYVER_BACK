@@ -6,7 +6,8 @@ import hashlib
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
 from jose.exceptions import ExpiredSignatureError
-from fastapi import status
+
+from fastapi import Header, status
 import secrets
 from database.connection import db
 from database.models import User, RefreshToken
@@ -112,6 +113,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token invalide"
         )
+
 
 @router.post("/refresh", tags=["Authentification"])
 def refresh_token(refresh_token: str, session: Session = Depends(db.get_session)):

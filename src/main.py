@@ -2,16 +2,21 @@ from fastapi import Depends, FastAPI, HTTPException
 from database.connection import db
 from sqlalchemy import text
 from sqlmodel import Session
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
-from fastapi import FastAPI
 
 # Importer les routeurs
 from auth.auth import router as auth_router
 from airport.airport import router as airport_router
 from ModelPlane.model_plane import router as model_plane_router
 app = FastAPI()
-
-# Enregistrer les routes
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:4200"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.include_router(auth_router)
 app.include_router(airport_router)
 app.include_router(model_plane_router)
