@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pyodbc
+python-dotenv
+sqlmodel
+jose
+python-jose
+pydantic-settings
+python-multipart
+jwt

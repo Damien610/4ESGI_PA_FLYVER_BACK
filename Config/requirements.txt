@@ -1,7 +1,0 @@
-fastapi
-uvicorn
-pyodbc
-python-dotenv
-sqlmodel
-jose
-python-jose
