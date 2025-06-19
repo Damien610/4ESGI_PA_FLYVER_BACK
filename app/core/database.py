@@ -6,7 +6,7 @@ from sqlalchemy import text
 print(settings.full_db_url)
 class Database:
     def __init__(self):
-        self.master_url = "mssql+pyodbc://sa:YourStrong%40Password123@sqlserver,1433/master?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes&Encrypt=no"
+        self.master_url = "mssql+pyodbc://sa:YourStrong%40Password123@sqlserver:1433/master?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes&Encrypt=no"
 
         self.full_url = settings.full_db_url
         self.database_name = settings.db_name
