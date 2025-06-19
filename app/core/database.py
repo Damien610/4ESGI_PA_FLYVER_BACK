@@ -38,7 +38,6 @@ class Database:
         from app.models.airport import Airport
         from app.models.plane import Plane
         from app.models.flight import Flight
-        from app.models.seat import Seat
         from app.models.reservation import Reservation
         from app.models.modelplane import ModelPlane
         db_engine = create_engine(self.full_url, echo=True)

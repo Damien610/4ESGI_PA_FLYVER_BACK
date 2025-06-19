@@ -8,5 +8,4 @@ class ModelPlane(SQLModel, table=True):
     manufacturer: str
     capacity: int
 
-    seats: List["Seat"] = Relationship(back_populates="model")
     planes: List["Plane"] = Relationship(back_populates="model")
