@@ -18,6 +18,6 @@ class Settings(BaseSettings):
 
     @property
     def full_db_url(self) -> str:
-        return "mssql+pyodbc://sa:YourStrong%40Password123@sqlserver,1433/flyver_db?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes&Encrypt=no"
+        return "mssql+pyodbc://sa:YourStrong%40Password123@sqlserver:1433/flyver_db?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes&Encrypt=no"
 
 settings = Settings()
