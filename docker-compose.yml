@@ -24,6 +24,7 @@ services:
       - "8000:8000"
     depends_on:
       - db
+      - minio
     networks:
       - appnet
     env_file:
@@ -31,10 +32,42 @@ services:
     volumes:
       - .:/app
     entrypoint: ["/entrypoint.sh"]
-    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000","--reload"]
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+  minio:
+    image: minio/minio
+    container_name: minio
+    ports:
+      - "9000:9000"   # API S3
+      - "9001:9001"   # Console Web
+    volumes:
+      - minio_data:/data
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server --console-address ":9001" /data
+    networks:
+      - appnet
+
+  createbucket:
+    image: minio/mc
+    container_name: minio-createbucket
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      mc alias set local http://minio:9000 minioadmin minioadmin;
+      mc mb local/images;
+      mc policy set public local/images;
+      exit 0;
+      "
+    networks:
+      - appnet
 
 volumes:
   sqlserver_data:
+  minio_data:
 
 networks:
   appnet:

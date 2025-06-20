@@ -8,3 +8,5 @@ python-jose
 pydantic-settings
 python-multipart
 jwt
+boto3
+botocore

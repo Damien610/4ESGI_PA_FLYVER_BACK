@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     db_name: str
     db_driver: str
 
+    minio_endpoint: str
+    minio_access_key: str
+    minio_secret_key: str
+    minio_bucket: str
     model_config = SettingsConfigDict(env_file=".env")
 
     @property
