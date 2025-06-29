@@ -54,13 +54,14 @@ services:
     container_name: minio-createbucket
     depends_on:
       - minio
-    entrypoint: >
+    entrypoint: |
       /bin/sh -c "
-      sleep 5;
-      mc alias set local http://minio:9000 minioadmin minioadmin;
-      mc mb local/images;
-      mc policy set public local/images;
-      exit 0;
+      sleep 5
+      mc alias set local http://minio:9000 minioadmin minioadmin
+      mc mb --ignore-existing local/images
+      mc anonymous set download local/images
+      mc ls local/images
+      exit 0
       "
     networks:
       - appnet

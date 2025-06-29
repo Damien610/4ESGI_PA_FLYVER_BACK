@@ -48,5 +48,5 @@ def get_current_user(token: str = Depends(oauth2_scheme), session: Session = Dep
 
 def admin_only(user: User = Depends(get_current_user)):
     if not user.is_admin:
-        raise HTTPException(status_code=403, detail="Accès réservé aux administrateurs")
+        raise HTTPException(status_code=403, detail="Access reserved for administrators")
     return user
