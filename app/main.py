@@ -14,7 +14,11 @@ from app.routers.modelplane import router as modelplane_router
 from app.routers.plane import router as plane_router
 from app.routers import flight
 from app.routers import reservation
+from app.utils.exception_handlers import register_exception_handlers
+
 app = FastAPI()
+
+register_exception_handlers(app)
 
 # === CORS ===
 app.add_middleware(

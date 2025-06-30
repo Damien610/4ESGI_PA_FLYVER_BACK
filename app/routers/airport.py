@@ -3,8 +3,8 @@ from http import HTTPStatus
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form
 from sqlmodel import Session
 from typing import List, Optional
-from app.core.exception import DuplicateIATA, InvalidIATA, AirportNotFound
 from app.core.database import db
+from app.crud.exception import NotFound, AlreadyExist, BadRequest
 from app.utils.security import admin_only
 from app.schemas.airport import AirportCreate,AirportRead, AirportUpdate
 from app.crud.airport import (
@@ -14,6 +14,7 @@ from app.crud.airport import (
     update_airport,
     delete_airport
 )
+
 
 router = APIRouter(
     prefix="/airports",
@@ -36,9 +37,11 @@ def create_airport_endpoint(
         airport = create_airport(session, data, images=images or [])
         airport.image_urls= airport.get_image_urls()
         return airport
-    except DuplicateIATA as e:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=str(e))
-    except InvalidIATA as e:
+    except NotFound as e:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=str(e))
+    except AlreadyExist as e:
+        raise HTTPException(status_code=HTTPStatus.CONFLICT, detail=str(e))
+    except BadRequest as e:
         raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=str(e))
 
 
@@ -75,11 +78,11 @@ def update(airport_id: int,
         airport = update_airport(session,airport_id, data, images=images or [])
         airport.image_urls= airport.get_image_urls()
         return airport
-    except AirportNotFound as e:
+    except NotFound as e:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=str(e))
-    except DuplicateIATA as e:
+    except AlreadyExist as e:
         raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=str(e))
-    except InvalidIATA as e:
+    except BadRequest as e:
         raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail=str(e))

@@ -8,22 +8,23 @@ from logging import exception
 from sqlmodel import Session
 
 from app.core.minio_client import upload_image_to_minio, delete_image_from_minio
+from app.crud.exception import BadRequest, AlreadyExist, NotFound
 from app.models.airport import Airport
 from app.schemas.airport import AirportCreate, AirportUpdate
 from fastapi import UploadFile
 from typing import List
-from app.core.exception import AirportNotFound,InvalidIATA,DuplicateIATA
+
 
 def create_airport(db: Session, data: AirportCreate, images: List[UploadFile]) -> Airport:
     image_urls = []
 
     try:
         if not (isinstance(data.iata, str) and len(data.iata) == 3 and data.iata.isupper()):
-            raise InvalidIATA("The IATA code must contain exactly 3 capital letters")
+            raise BadRequest("IATA code must be a 3-letter uppercase string.")
 
         existing_airport = db.query(Airport).filter_by(iata=data.iata).first()
         if existing_airport:
-            raise DuplicateIATA(f"An airport with the IATA code '{data.iata}' already exists.")
+            raise AlreadyExist("An airport with this IATA code already exists.")
 
         image_urls = [upload_image_to_minio(file) for file in images] if images else []
         data.image_urls = image_urls
@@ -70,15 +71,15 @@ def get_airport_by_id(db: Session, id_airport: int) -> Airport | None:
 def update_airport(db: Session, id_airport: int, data: AirportUpdate, images: List[UploadFile]) -> Airport:
     airport = db.get(Airport, id_airport)
     if not airport:
-        raise AirportNotFound(f"Airport with id {id_airport} not found")
+        raise NotFound("Airport not found")
 
     if data.iata and (not isinstance(data.iata, str) or len(data.iata) != 3 or not data.iata.isupper()):
-        raise InvalidIATA("The IATA code must contain exactly 3 capital letters")
+        raise BadRequest("IATA code must be a 3-letter uppercase string.")
 
     if data.iata and data.iata != airport.iata:
         existing_airport = db.query(Airport).filter_by(iata=data.iata).first()
         if existing_airport:
-            raise DuplicateIATA(f"An airport with the IATA code '{data.iata}' already exists.")
+            raise AlreadyExist("An airport with this IATA code already exists.")
 
 
     if data.image_urls:
@@ -101,7 +102,7 @@ def update_airport(db: Session, id_airport: int, data: AirportUpdate, images: Li
 def delete_airport(db: Session, id_airport: int):
     airport = db.get(Airport, id_airport)
     if not airport:
-        raise HTTPException("Airport not found")
+        raise NotFound("Airport not found")
     if isinstance(airport.image_urls, str):
         image_urls = loads(airport.image_urls)
         for url in image_urls:

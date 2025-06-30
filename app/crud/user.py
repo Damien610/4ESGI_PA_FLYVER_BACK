@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import Type
 
 from sqlmodel import Session
+
+from app.crud.exception import AlreadyExist, NotFound
 from app.models.user import User
 from app.schemas.user import UserCreate, UserRead, UserUpdateModel
 from app.core.config import settings
@@ -19,7 +21,7 @@ def hash_password(password: str) -> str:
 def create_user(db: Session, user_create: UserCreate) -> User:
     existing_user = db.query(User).filter(User.email == user_create.email).first()
     if existing_user:
-        raise ValueError("Un utilisateur avec cet email existe déjà.")
+        raise AlreadyExist("this email is already registered")
 
     user_data = user_create.dict()
     user_data["password_hash"] = hash_password(user_create.password_hash)
@@ -33,7 +35,11 @@ def get_user_by_id(db: Session, user_id: int) -> User | None:
     return db.get(User, user_id)
 
 def get_users(db: Session) -> list[User]:
-    return db.query(User).all()
+    users = db.query(User).all()
+    if not users:
+        raise NotFound("No users found")
+    return users
+
 
 def get_user_by_email(db: Session, email: str) -> User | None:
     return db.query(User).filter(User.email == email).first()
@@ -41,14 +47,14 @@ def get_user_by_email(db: Session, email: str) -> User | None:
 def update_user(user_id: int, user_data: UserUpdateModel, db: Session) -> Type[User]:
     db_user = db.get(User, user_id)
     if not db_user:
-        raise ValueError("Utilisateur introuvable")
+        raise NotFound("User not found")
 
     updates = user_data.dict(exclude_unset=True)
 
     if "email" in updates:
         existing = db.query(User).filter(User.email == updates["email"]).first()
         if existing and existing.id_user != user_id:
-            raise ValueError("Cet email est déjà utilisé par un autre utilisateur.")
+            raise AlreadyExist("this email is already registered")
 
     for field, value in updates.items():
         setattr(db_user, field, value)
