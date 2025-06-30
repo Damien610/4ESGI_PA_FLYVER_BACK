@@ -13,7 +13,7 @@ from app.routers.airport import router as airport_router
 from app.routers.modelplane import router as modelplane_router
 from app.routers.plane import router as plane_router
 from app.routers import flight
-
+from app.routers import reservation
 app = FastAPI()
 
 # === CORS ===
@@ -33,6 +33,7 @@ app.include_router(airport_router, tags=["Airports"])
 app.include_router(modelplane_router, tags=["Model Planes"])
 app.include_router(plane_router, tags=["Planes"])
 app.include_router(flight.router, tags=["Flights"])
+app.include_router(reservation.router, tags=["Reservations"])
 
 @app.on_event("startup")
 def on_startup():
