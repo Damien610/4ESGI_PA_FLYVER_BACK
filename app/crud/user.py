@@ -53,7 +53,7 @@ def update_user(user_id: int, user_data: UserUpdateModel, db: Session) -> Type[U
 
     if "email" in updates:
         existing = db.query(User).filter(User.email == updates["email"]).first()
-        if existing and existing.id_user != user_id:
+        if existing:
             raise AlreadyExist("this email is already registered")
 
     for field, value in updates.items():

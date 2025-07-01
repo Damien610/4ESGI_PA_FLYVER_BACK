@@ -1,3 +1,4 @@
+from doctest import UnexpectedException
 from http import HTTPStatus
 
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form
@@ -49,18 +50,21 @@ def create_airport_endpoint(
 def list_all(session: Session = Depends(db.get_session)):
     try :
         return get_airports(session)
+    except NotFound as e:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=str(e))
+    except UnexpectedException as e:
+        raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail=str(e))
 
 @router.get("/{airport_id}", response_model=AirportRead)
 def get_one(airport_id: int, session: Session = Depends(db.get_session)):
-    airport = get_airport_by_id(session, airport_id)
-    if not airport:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Airport not found")
-
     try:
+        airport = get_airport_by_id(session, airport_id)
         return airport
-    except Exception as e:
+    except NotFound as e:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=str(e))
+    except UnexpectedException as e:
         raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail=str(e))
 
 
@@ -92,5 +96,7 @@ def delete(airport_id: int, session: Session = Depends(db.get_session)):
     try:
         delete_airport(session, airport_id)
         return {"message": "Airport successfully deleted"}
-    except ValueError as e:
+    except NotFound as e:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=str(e))
+    except UnexpectedException as e:
+        raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail=str(e))

@@ -12,7 +12,7 @@ from app.crud.exception import BadRequest, AlreadyExist, NotFound
 from app.models.airport import Airport
 from app.schemas.airport import AirportCreate, AirportUpdate
 from fastapi import UploadFile
-from typing import List
+from typing import List, Type
 
 
 def create_airport(db: Session, data: AirportCreate, images: List[UploadFile]) -> Airport:
@@ -50,6 +50,8 @@ def create_airport(db: Session, data: AirportCreate, images: List[UploadFile]) -
 def get_airports(db: Session) -> list[Airport]:
     try:
         airports = db.query(Airport).all()
+        if not airports:
+            raise NotFound("No airports found")
         for airport in airports:
             if isinstance(airport.image_urls, str):
                 airport.image_urls = loads(airport.image_urls)
@@ -59,14 +61,18 @@ def get_airports(db: Session) -> list[Airport]:
 
 
 
-def get_airport_by_id(db: Session, id_airport: int) -> Airport | None:
+def get_airport_by_id(db: Session, id_airport: int) -> Type[Airport]:
     try :
         airport = db.get(Airport, id_airport)
+        if not airport:
+            raise NotFound("Airport not found")
         if airport and isinstance(airport.image_urls, str):
             airport.image_urls = loads(airport.image_urls)
         return airport
+    except NotFound as e:
+        raise NotFound(f"Airport with id {id_airport} not found: {e}")
     except Exception as e:
-        raise f"Unexpected error while retrieving airport with id {id_airport} : {e}"
+        raise UnexpectedException(f"Unexpected error while retrieving airport with id {id_airport}: {e}")
 
 def update_airport(db: Session, id_airport: int, data: AirportUpdate, images: List[UploadFile]) -> Airport:
     airport = db.get(Airport, id_airport)
@@ -100,15 +106,19 @@ def update_airport(db: Session, id_airport: int, data: AirportUpdate, images: Li
     return airport
 
 def delete_airport(db: Session, id_airport: int):
-    airport = db.get(Airport, id_airport)
-    if not airport:
-        raise NotFound("Airport not found")
-    if isinstance(airport.image_urls, str):
-        image_urls = loads(airport.image_urls)
-        for url in image_urls:
-            try:
-                delete_image_from_minio(url)
-            except Exception as e:
-                print(f"Error while deleting image {url}: {e}")
-    db.delete(airport)
-    db.commit()
+    try:
+        airport = db.get(Airport, id_airport)
+        if not airport:
+            raise NotFound("Airport not found")
+        if isinstance(airport.image_urls, str):
+            image_urls = loads(airport.image_urls)
+            for url in image_urls:
+                try:
+                    delete_image_from_minio(url)
+                except Exception as e:
+                    print(f"Error while deleting image {url}: {e}")
+        db.delete(airport)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise UnexpectedException(f"Unexpected error while deleting airport with id {id_airport}: {e}")

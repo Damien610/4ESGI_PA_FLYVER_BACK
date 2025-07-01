@@ -2,7 +2,9 @@ from fastapi import Request, FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 import traceback
-from app.utils.exceptions import CustomException
+
+from app.crud.exception import NotFound, BadRequest, AlreadyExist, CustomException,NotAuthorized
+
 
 # === HANDLERS ===
 
@@ -13,52 +15,48 @@ async def custom_exception_handler(request: Request, exc: CustomException):
     )
 
 
-async def unhandled_exception_handler(request: Request, exc: str):
-    print(traceback.format_exc())  # ou log via logging
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    print(traceback.format_exc())
     return JSONResponse(
         status_code=HTTP_500_INTERNAL_SERVER_ERROR,
-        content={"detail": f"Une erreur interne est survenue : {exc}"},
+        content={"detail": f"Une erreur interne est survenue : {str(exc)}"},
     )
 
-async def not_found_handler(request: Request, exc: str):
+
+async def not_found_exception_handler(request: Request, exc: NotFound):
     return JSONResponse(
         status_code=404,
-        content={"detail": f"Not Found : {exc}"},
+        content={"detail": str(exc)}
     )
 
-async def forbidden_handler(request: Request, exc: str):
+
+async def forbidden_handler(request: Request, exc: NotAuthorized):
     return JSONResponse(
         status_code=403,
-        content={"detail": f"Forbidden : {exc}"},
+        content={"detail": f"Forbidden : {str(exc)}"},
     )
 
-async def bad_request_handler(request: Request, exc: str):
+
+async def bad_request_handler(request: Request, exc: BadRequest):
     return JSONResponse(
         status_code=400,
-        content={"detail": f"Bad Request : {exc}"},
+        content={"detail": f"Bad Request : {str(exc)}"},
     )
 
-async def already_exists_handler(request: Request, exc: str):
+
+async def already_exists_handler(request: Request, exc: AlreadyExist):
     return JSONResponse(
         status_code=409,
-        content={"detail": f"Already Exists : {exc}"},
+        content={"detail": f"Already Exists : {str(exc)}"},
     )
 
+
 async def http_exception_handler(request: Request, exc: HTTPException):
-    if exc.status_code == 400:
-        return await bad_request_handler(request, exc.detail)
-    elif exc.status_code == 404:
-        return await not_found_handler(request, exc.detail)
-    elif exc.status_code == 409:
-        return await already_exists_handler(request, exc.detail)
-    elif exc.status_code == 403:
-        return await forbidden_handler(request, exc.detail)
-    else:
+
         return JSONResponse(
             status_code=exc.status_code,
             content={"detail": f"{exc.status_code} Error : {exc.detail}"}
         )
-
 
 
 # === ENREGISTREMENT AUTOMATIQUE ===
@@ -67,3 +65,6 @@ def register_exception_handlers(app: FastAPI):
     app.add_exception_handler(CustomException, custom_exception_handler)
     app.add_exception_handler(HTTPException, http_exception_handler)
     app.add_exception_handler(Exception, unhandled_exception_handler)
+    app.add_exception_handler(NotFound, not_found_exception_handler)
+    app.add_exception_handler(BadRequest, bad_request_handler)
+    app.add_exception_handler(AlreadyExist, already_exists_handler)
