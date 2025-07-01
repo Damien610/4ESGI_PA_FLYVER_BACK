@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
 from app.core.database import db
@@ -13,7 +15,7 @@ router = APIRouter(prefix="/model-planes", tags=["Model Planes"])
 
 def require_admin(user: User = Depends(get_current_user)):
     if not user.is_admin:
-        raise HTTPException(status_code=403, detail="Accès réservé aux administrateurs")
+        raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="Access denied")
     return user
 
 @router.post("/", response_model=ModelPlaneRead)
@@ -26,19 +28,13 @@ def list_all(session: Session = Depends(db.get_session)):
 
 @router.get("/{model_id}", response_model=ModelPlaneRead)
 def read(model_id: int, session: Session = Depends(db.get_session)):
-    model = get_model_plane(session, model_id)
-    if not model:
-        raise HTTPException(status_code=404, detail="Modèle non trouvé")
-    return model
+    return  get_model_plane(session, model_id)
 
 @router.put("/{model_id}", response_model=ModelPlaneRead)
 def update(model_id: int, data: ModelPlaneUpdate, session: Session = Depends(db.get_session), _: User = Depends(require_admin)):
-    try:
-        return update_model_plane(session, model_id, data)
-    except ValueError:
-        raise HTTPException(status_code=404, detail="Modèle non trouvé")
+    return update_model_plane(session, model_id, data)
+
 
 @router.delete("/{model_id}")
 def delete(model_id: int, session: Session = Depends(db.get_session), _: User = Depends(require_admin)):
-    delete_model_plane(session, model_id)
-    return {"detail": "Modèle supprimé"}
+    return delete_model_plane(session, model_id)
