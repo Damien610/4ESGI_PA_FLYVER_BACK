@@ -23,10 +23,7 @@ def list_all(db: Session = Depends(db.get_session)):
 
 @router.get("/{flight_id}", response_model=FlightRead)
 def get_one(flight_id: int, db: Session = Depends(db.get_session)):
-    flight = get_flight_by_id(db, flight_id)
-    if not flight:
-        raise HTTPException(status_code=404, detail="Vol non trouvé")
-    return flight
+    return get_flight_by_id(db, flight_id)
 
 
 @router.put("/{flight_id}", response_model=FlightRead)
@@ -36,5 +33,4 @@ def update(flight_id: int, data: FlightUpdate, db: Session = Depends(db.get_sess
 
 @router.delete("/{flight_id}")
 def remove(flight_id: int, db: Session = Depends(db.get_session)):
-    delete_flight(db, flight_id)
-    return {"message": "Vol supprimé avec succès"}
+    return delete_flight(db, flight_id)

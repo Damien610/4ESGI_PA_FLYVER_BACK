@@ -21,11 +21,7 @@ def list_all(db: Session = Depends(db.get_session)):
 
 @router.get("/{reservation_id}", response_model=ReservationRead)
 def get_one(reservation_id: int, db: Session = Depends(db.get_session)):
-    reservation = crud.get_reservation_by_id(db, reservation_id)
-    if not reservation:
-        raise HTTPException(status_code=404, detail="Réservation non trouvée")
-    return reservation
-
+    return crud.get_reservation_by_id(db, reservation_id)
 
 @router.put("/{reservation_id}", response_model=ReservationRead)
 def update(reservation_id: int, data: ReservationUpdate, db: Session = Depends(db.get_session)):
@@ -34,5 +30,4 @@ def update(reservation_id: int, data: ReservationUpdate, db: Session = Depends(d
 
 @router.delete("/{reservation_id}")
 def delete(reservation_id: int, db: Session = Depends(db.get_session)):
-    crud.delete_reservation(db, reservation_id)
-    return {"message": "Réservation supprimée"}
+    return crud.delete_reservation(db, reservation_id)
