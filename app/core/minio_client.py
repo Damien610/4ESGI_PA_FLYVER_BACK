@@ -24,7 +24,7 @@ def upload_image_to_minio(file):
 
     s3.upload_fileobj(file.file, MINIO_BUCKET, key, ExtraArgs={"ContentType": file.content_type})
 
-    url = f"http://localhost:9001/browser/{MINIO_BUCKET}/{key}"
+    url = f"http://localhost:9000/{MINIO_BUCKET}/{key}"
     return url
 
 
