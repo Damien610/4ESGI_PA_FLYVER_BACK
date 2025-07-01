@@ -6,8 +6,6 @@ import traceback
 from app.crud.exception import NotFound, BadRequest, AlreadyExist, CustomException,NotAuthorized
 
 
-# === HANDLERS ===
-
 async def custom_exception_handler(request: Request, exc: CustomException):
     return JSONResponse(
         status_code=exc.status_code,

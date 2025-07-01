@@ -33,40 +33,21 @@ def create_airport_endpoint(
         session: Session = Depends(db.get_session)
 ):
     data = AirportCreate(name=name, iata=iata, city=city, country=country)
+    airport = create_airport(session, data, images=images or [])
+    airport.image_urls= airport.get_image_urls()
+    return airport
 
-    try:
-        airport = create_airport(session, data, images=images or [])
-        airport.image_urls= airport.get_image_urls()
-        return airport
-    except NotFound as e:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=str(e))
-    except AlreadyExist as e:
-        raise HTTPException(status_code=HTTPStatus.CONFLICT, detail=str(e))
-    except BadRequest as e:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=str(e))
 
 
 @router.get("/", response_model=List[AirportRead])
 def list_all(session: Session = Depends(db.get_session)):
-    try :
-        return get_airports(session)
-    except NotFound as e:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=str(e))
-    except UnexpectedException as e:
-        raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail=str(e))
+    return get_airports(session)
+
+
 
 @router.get("/{airport_id}", response_model=AirportRead)
 def get_one(airport_id: int, session: Session = Depends(db.get_session)):
-    try:
-        airport = get_airport_by_id(session, airport_id)
-        return airport
-    except NotFound as e:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=str(e))
-    except UnexpectedException as e:
-        raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail=str(e))
-
+    return get_airport_by_id(session, airport_id)
 
 
 @router.put("/{airport_id}", response_model=AirportRead)
@@ -77,26 +58,14 @@ def update(airport_id: int,
            country: Optional[str] = Form(None, example="France"),
            images: Optional[List[UploadFile]] = File(default_factory=list),
            session: Session = Depends(db.get_session)):
-    try:
-        data = AirportUpdate(name=name, iata=iata, city=city, country=country)
-        airport = update_airport(session,airport_id, data, images=images or [])
-        airport.image_urls= airport.get_image_urls()
-        return airport
-    except NotFound as e:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=str(e))
-    except AlreadyExist as e:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=str(e))
-    except BadRequest as e:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail=str(e))
+
+    data = AirportUpdate(name=name, iata=iata, city=city, country=country)
+    airport = update_airport(session,airport_id, data, images=images or [])
+    airport.image_urls= airport.get_image_urls()
+    return airport
+
 
 @router.delete("/{airport_id}")
 def delete(airport_id: int, session: Session = Depends(db.get_session)):
-    try:
-        delete_airport(session, airport_id)
-        return {"message": "Airport successfully deleted"}
-    except NotFound as e:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=str(e))
-    except UnexpectedException as e:
-        raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail=str(e))
+    return delete_airport(session, airport_id)
+
