@@ -1,33 +1,124 @@
-# FLYVER_BACK
+# ✈️ Flyver API — Backend FastAPI
 
-## lancer l'API Flyver
-```bash
-docker-compose up  --build
+Back-end de l'application **Flyver**, développé en **Python avec FastAPI**, destiné à gérer les opérations métiers autour des aéroports, vols, avions, passagers et réservations. Ce service inclut également un système de stockage d'images avec **MinIO** et une base de données **SQL Server**, le tout orchestré via Docker Compose.
+
+---
+
+## 📁 Structure du projet
+
+Le code source de l'API se trouve dans le dossier `app/`, organisé de la manière suivante :
+
+```
+app/
+├── api/         # Définition des routes FastAPI
+├── core/        # Configuration de l’application, dépendances
+├── models/      # Modèles SQLModel (base de données)
+├── schemas/     # Schémas Pydantic (validation données)
+├── utils/       # Fonctions utilitaires (hashing, fichiers, etc.)
+├── main.py      # Point d'entrée de l'application FastAPI
 ```
 
-## Accéder à l'API
-L'API est accessible à l'adresse suivante : [http://localhost:8000](http://localhost:8000)
+---
 
-## Documentation de l'API
-La documentation de l'API est disponible à l'adresse suivante : [http://localhost:8000/docs](http://localhost:8000/docs)
+## ⚙️ Technologies utilisées
 
-## Développement de l'API
-Pour développer l'API, vous pouvez modifier les fichiers dans le dossier `app`. Les fichiers sont organisés de la manière suivante :
-- `app/main.py` : Point d'entrée de l'application FastAPI.
-- `app/api/` : Contient les routes de l'API.
-- `app/models/` : Contient les modèles de données utilisés par l'API.
-- `app/schemas/` : Contient les schémas de validation des données.
-- `app/core/` : Contient la configuration de l'application et les dépendances.
-- `app/utils/` : Contient les fonctions utilitaires de l'application.
+- **FastAPI** — API moderne, rapide et asynchrone
+- **SQLModel** — ORM basé sur SQLAlchemy + Pydantic
+- **SQL Server** — Base de données relationnelle
+- **MinIO** — Stockage objet (images des aéroports)
+- **Docker / Docker Compose** — Conteneurisation de l’ensemble des services
+- **Pytest** — Tests unitaires
 
-## Utilisation de l'API
-Pour utiliser l'API, vous pouvez envoyer des requêtes HTTP à l'API en utilisant un client HTTP comme Postman ou curl. Vous pouvez également utiliser la documentation interactive de l'API disponible à l'adresse [http://localhost:8000/docs](http://localhost:8000/docs) pour tester les différentes routes de l'API.
-Atention, l'API est en mode développement, ce qui signifie que les modifications apportées au code seront automatiquement rechargées sans avoir besoin de redémarrer le serveur.
-Certaines routes de l'API nécessitent une authentification. Vous pouvez vous authentifier en utilisant le token JWT généré lors de la connexion. Pour plus d'informations sur l'authentification, consultez la documentation de l'API.
+---
 
-## Modification du code du dossier `models`
-Toute modification du code dans le dossier `models` nécessite de reconstruire l'image Docker pour que les modifications soient prises en compte. Vous pouvez le faire en exécutant la commande suivante :
+## 🚀 Lancer le projet en local
+
+### Prérequis
+
+- Docker & Docker Compose installés
+
+### Lancer les services
+
 ```bash
-docker-compose down -v
 docker-compose up --build
 ```
+
+Cela démarre :
+- L’API FastAPI (port `8000`)
+- La base de données SQL Server (port `1433`)
+- Le service MinIO (port `9000`)
+
+### Accéder à l'API
+
+- Documentation Swagger : [http://localhost:8000/docs](http://localhost:8000/docs)
+- MinIO Console : [http://localhost:9000](http://localhost:9000)
+
+---
+
+## 🔐 Fonctionnalités principales
+
+- Authentification (utilisateurs, admins)
+- CRUD complet :
+  - Aéroports (avec upload d’images)
+  - Avions, modèles d’avions
+  - Vols, réservations, passagers
+- Gestion des fichiers via MinIO (upload, lecture)
+- Relations complexes : vols entre aéroports, réservations liées à passagers
+
+---
+
+## 🗃️ Modèle de données
+
+Le projet utilise des modèles relationnels (SQLModel). Voici les entités principales :
+
+- `Airport`
+- `Flight`
+- `Plane`
+- `ModelPlane`
+- `Passenger`
+- `Reservation`
+- `User`
+
+> Voir `app/models/` pour le détail.
+
+---
+
+## 🔁 Workflow Git
+
+Le développement suit un **Git flow structuré** :
+- Les branches de développement sont créées à partir de `develop` (`feature/nom-fonction`)
+- Une fois testées localement, elles sont mergées dans `develop`
+- Après validation en test, les changements sont intégrés dans `main` pour déploiement
+
+---
+
+## 🧪 Lancer les tests
+
+```bash
+docker exec -it <nom_du_conteneur_back> pytest
+```
+
+---
+
+## 📦 Variables d’environnement
+
+À définir dans un fichier `.env` ou directement dans `docker-compose.yml` :
+
+```env
+DATABASE_URL=mssql+pyodbc://username:password@db:1433/dbname?driver=ODBC+Driver+17+for+SQL+Server
+MINIO_ACCESS_KEY=minioadmin
+MINIO_SECRET_KEY=minioadmin
+```
+
+---
+
+## 👤 Auteur
+
+Projet réalisé dans le cadre du **projet annuel 4ESGI**.  
+Développé par Damien et l’équipe Flyver.
+
+---
+
+## 📄 Licence
+
+Ce projet est distribué sous licence MIT — voir le fichier `LICENSE`.
