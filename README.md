@@ -117,8 +117,4 @@ MINIO_SECRET_KEY=minioadmin
 Projet réalisé dans le cadre du **projet annuel 4ESGI**.  
 Développé par Damien et l’équipe Flyver.
 
----
 
-## 📄 Licence
-
-Ce projet est distribué sous licence MIT — voir le fichier `LICENSE`.
